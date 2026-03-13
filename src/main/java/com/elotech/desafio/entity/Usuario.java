@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -40,4 +41,6 @@ public class Usuario {
     @Column(nullable = false)
     private String telefone;
 
+    @OneToMany(mappedBy = "usuario")
+    private List<Emprestimo> emprestimos;
 }
