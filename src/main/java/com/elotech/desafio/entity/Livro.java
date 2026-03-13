@@ -7,8 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.time.LocalDate;
 
-import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -21,21 +21,25 @@ public class Livro {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long Id;
+    private Long id;
 
-    @Column
+    @Column(nullable = false)
     @NotBlank(message = "Titulo é obrigatório")
     private String titulo;
 
-    @Column
+    @Column(nullable = false)
     @NotBlank(message = "Autor é obrigatório")
     private String autor;
 
-    @Column(name = "data_publicacao")
-    @NotNull(message = "Data da publicação é obrigatória")
-    private Date dataPublicacao;
+    @Column(nullable = false)
+    @NotBlank(message = "ISBN é obrigatório")
+    private String isbn;
 
-    @Column
+    @Column(name = "data_publicacao", nullable = false)
+    @NotNull(message = "Data da publicação é obrigatória")
+    private LocalDate dataPublicacao;
+
+    @Column(nullable = false)
     @NotBlank(message = "Categoria é obrigatória")
     private String categoria;
 

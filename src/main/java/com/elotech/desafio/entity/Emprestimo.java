@@ -3,12 +3,12 @@ package com.elotech.desafio.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.Date;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -24,7 +24,7 @@ public class Emprestimo {
 
     @NotNull(message = "O ID do usuário é obrigatório")
     @ManyToOne
-    @JoinColumn(name = "usuario_id")
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
 
@@ -35,11 +35,12 @@ public class Emprestimo {
 
     @Column(name = "data_emprestimo")
     @NotNull(message = "Data do emprestimo é obrigatória")
-    private Date dataEmprestimo;
+    @PastOrPresent(message = "Data em que o empréstimo foi realizado não pode ser no futuro")
+    private LocalDate dataEmprestimo;
 
     @Column(name = "data_devolucao")
     @NotNull(message = "Data da devolução é obrigatória")
-    private Date dataDevolucao;
+    private LocalDate dataDevolucao;
 
     @Column(name = "status")
     @NotBlank(message = "Status é obrigatório")

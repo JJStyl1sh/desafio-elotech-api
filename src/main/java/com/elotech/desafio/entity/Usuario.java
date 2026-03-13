@@ -4,12 +4,13 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.time.LocalDate;
 
-import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -26,7 +27,7 @@ public class Usuario {
 
     @NotBlank(message = "Nome é obrigatório")
     @Column(nullable = false)
-    private String name;
+    private String nome;
 
     @NotBlank(message = "E-mail é obrigatório")
     @Email
@@ -35,7 +36,8 @@ public class Usuario {
 
     @NotNull(message = "Data de cadastro é obrigatória")
     @Column(name = "data_cadastro", nullable = false)
-    private Date dataCadastro;
+    @PastOrPresent(message = "Data não pode ser do futuro")
+    private LocalDate dataCadastro;
 
     @NotBlank(message = "Telefone é obrigatório")
     @Column(nullable = false)
