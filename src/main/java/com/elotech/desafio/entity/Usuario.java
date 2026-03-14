@@ -45,4 +45,7 @@ public class Usuario {
 
     @OneToMany(mappedBy = "usuario")
     private List<Emprestimo> emprestimos;
+
+    public Usuario(String email, String nome, LocalDate dataCadastro, String telefone) {
+    }
 }
