@@ -33,16 +33,16 @@ public class Emprestimo {
     @JoinColumn(name = "livro_id", nullable = false)
     private Livro livro;
 
-    @Column(name = "data_emprestimo")
+    @Column(name = "data_emprestimo", nullable = false)
     @NotNull(message = "Data do emprestimo é obrigatória")
     @PastOrPresent(message = "Data em que o empréstimo foi realizado não pode ser no futuro")
     private LocalDate dataEmprestimo;
 
-    @Column(name = "data_devolucao")
+    @Column(name = "data_devolucao", nullable = false)
     @NotNull(message = "Data da devolução é obrigatória")
     private LocalDate dataDevolucao;
 
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     @NotBlank(message = "Status é obrigatório")
     private String status;
 
