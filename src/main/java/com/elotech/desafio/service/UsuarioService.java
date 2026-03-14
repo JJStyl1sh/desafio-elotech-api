@@ -22,11 +22,10 @@ public class UsuarioService {
             throw new RuntimeException("E-mail ja cadastrado no sistema");
         }
 
-        Usuario usuarioNovo = new Usuario(requestDTO.email(), requestDTO.nome(), LocalDate.now(), requestDTO.telefone());
+        Usuario usuarioNovo =  Usuario.builder().nome(requestDTO.nome()).email(requestDTO.email())
+                .dataCadastro(LocalDate.now()).telefone(requestDTO.telefone()).build();;
 
-        usuarioRepository.save(usuarioNovo);
-
-        return usuarioNovo;
+        return usuarioRepository.save(usuarioNovo);
 
     }
 
@@ -52,9 +51,7 @@ public class UsuarioService {
         usuarioPraEditar.setNome(requestDTO.nome());
         usuarioPraEditar.setTelefone(requestDTO.telefone());
 
-        usuarioRepository.save(usuarioPraEditar);
-
-        return usuarioPraEditar;
+        return usuarioRepository.save(usuarioPraEditar);
     }
 
     public void deletaUsuario(Long id){
