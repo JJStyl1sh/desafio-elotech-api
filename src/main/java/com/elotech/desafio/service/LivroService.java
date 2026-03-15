@@ -35,8 +35,21 @@ public class LivroService {
         return livroRepository.findById(id).orElseThrow(() -> new RuntimeException("Livro não encontrado"));
     }
 
-    public GoogleBookResponseDTO retornaLivrosGooglePorTitulo(String titulo){
-        return chamadaGoogle("intitle:" + titulo);
+    public List<Livro> retornaLivrosGooglePorTitulo(String titulo){
+
+        GoogleBookResponseDTO responseDTO = chamadaGoogle("intitle:" + titulo);
+
+        if(responseDTO.items() == null || responseDTO.items().isEmpty()){
+            return List.of();
+        }
+
+        return responseDTO.items().stream().map(item -> Livro.builder()
+                .titulo(item.volumeInfo().title())
+                .autor(juntaLista(item.volumeInfo().authors()))
+                .categoria(juntaLista(item.volumeInfo().categories()))
+                .isbn(extraiIsbn(item.volumeInfo().industryIdentifiers()))
+                .dataPublicacao(parseDataPublicacao(item.volumeInfo().publishedDate()))
+                .build()).toList();
     }
 
     public GoogleBookResponseDTO retornaLivrosGooglePorIsbn(String isbn){
