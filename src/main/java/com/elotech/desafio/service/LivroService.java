@@ -19,7 +19,7 @@ public class LivroService {
     private final RestClient googleBooksClient;
 
     @Value("${google.books.api.key}")
-    private final String apiKey;
+    private  String apiKey;
 
     private final LivroRepository livroRepository;
 
