@@ -37,6 +37,23 @@ public class LivroController {
                 livro.getAutor(), livro.getIsbn(), livro.getDataPublicacao(), livro.getCategoria()));
     }
 
+    @GetMapping("/recomendacoes/{id}")
+    public ResponseEntity<List<LivroResponseDTO>> retornaRecomendacoes(@PathVariable Long id){
+
+        List<Livro> recomendacoes = livroService.recomendaLivro(id);
+
+        List<LivroResponseDTO> responseDTO = recomendacoes.stream().map(livro ->  new LivroResponseDTO(
+                null,
+                livro.getTitulo(),
+                livro.getAutor(),
+                livro.getIsbn(),
+                livro.getDataPublicacao(),
+                livro.getCategoria()
+        )).toList();
+
+        return ResponseEntity.ok(responseDTO);
+    }
+
     @PostMapping("/google")
     public ResponseEntity<LivroResponseDTO> criarLivroGoogleBooks(@RequestParam String isbn){
 

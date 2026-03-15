@@ -2,7 +2,10 @@ package com.elotech.desafio.service;
 
 import com.elotech.desafio.dto.GoogleBookResponseDTO;
 import com.elotech.desafio.dto.LivroRequestDTO;
+import com.elotech.desafio.entity.Emprestimo;
 import com.elotech.desafio.entity.Livro;
+import com.elotech.desafio.entity.Usuario;
+import com.elotech.desafio.repository.EmprestimoRepository;
 import com.elotech.desafio.repository.LivroRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +18,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +31,12 @@ class LivroServiceTest {
 
     @Mock
     private LivroRepository livroRepository;
+
+    @Mock
+    private UsuarioService usuarioService;
+
+    @Mock
+    private EmprestimoRepository emprestimoRepository;
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private RestClient googleBooksClient;
@@ -77,6 +87,62 @@ class LivroServiceTest {
         assertEquals("Livro não encontrado", exception.getMessage());
 
         verify(livroRepository, times(1)).findById(anyLong());
+    }
+
+    @Test
+    void deveRetornarRecomendacaoComSucesso(){
+        Usuario usuarioMock = Usuario.builder().id(1L).nome("joao").email("joao@outlook.com")
+                .dataCadastro(LocalDate.now()).telefone("449912213").build();
+
+        Livro livroMock = Livro.builder().id(1L).titulo("O Senhor dos Anéis").autor("J.R.R. Tolkien")
+                .isbn("9788533613379").dataPublicacao(LocalDate.of(1954,07,29)).categoria("Fantasia").build();
+
+        Livro livroMock2 = Livro.builder().id(3L).titulo("O Senhor das antas").autor("J.R.R. Tolkien")
+                .isbn("9438533613379").dataPublicacao(LocalDate.of(1954,07,29)).categoria("Fantasia").build();
+
+        List<Livro> livros = List.of(livroMock2);
+
+        Emprestimo emprestimoBD = Emprestimo.builder().id(1L).usuario(usuarioMock).livro(livroMock)
+                .dataEmprestimo(LocalDate.now())
+                .dataDevolucao(LocalDate.now().plusDays(14))
+                .status("EMPRESTADO").build();
+
+
+        when(usuarioService.retornaUsuario(anyLong())).thenReturn(usuarioMock);
+
+        when(emprestimoRepository.findByUsuario(any(Usuario.class))).thenReturn(List.of(emprestimoBD));
+
+        when(livroRepository.findByCategoriaInAndIdNotIn(anyList(), anyList())).thenReturn(livros);
+
+        List<Livro> livrosTeste = livroService.recomendaLivro(1L);
+
+        assertEquals(1, livrosTeste.size());
+        assertEquals(livros.getFirst().getCategoria(), livrosTeste.getFirst().getCategoria());
+
+    }
+
+    @Test
+    void deveRetornarListaVaziaQuandoNaoTemEmprestimo(){
+
+        Usuario usuarioMock = Usuario.builder().id(1L).nome("joao").email("joao@outlook.com")
+                .dataCadastro(LocalDate.now()).telefone("449912213").build();
+
+        Livro livroMock = Livro.builder().id(1L).titulo("O Senhor dos Anéis").autor("J.R.R. Tolkien")
+                .isbn("9788533613379").dataPublicacao(LocalDate.of(1954,07,29)).categoria("Fantasia").build();
+
+
+        Emprestimo emprestimoBD = Emprestimo.builder().id(1L).usuario(usuarioMock).livro(livroMock)
+                .dataEmprestimo(LocalDate.now())
+                .dataDevolucao(LocalDate.now().plusDays(14))
+                .status("EMPRESTADO").build();
+
+        when(usuarioService.retornaUsuario(anyLong())).thenReturn(usuarioMock);
+
+        when(emprestimoRepository.findByUsuario(any(Usuario.class))).thenReturn(List.of());
+
+        List<Livro> livros = livroService.recomendaLivro(1L);
+
+        assertTrue(livros.isEmpty());
     }
 
     @Test

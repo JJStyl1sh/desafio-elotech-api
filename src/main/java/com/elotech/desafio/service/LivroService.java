@@ -2,7 +2,10 @@ package com.elotech.desafio.service;
 
 import com.elotech.desafio.dto.GoogleBookResponseDTO;
 import com.elotech.desafio.dto.LivroRequestDTO;
+import com.elotech.desafio.entity.Emprestimo;
 import com.elotech.desafio.entity.Livro;
+import com.elotech.desafio.entity.Usuario;
+import com.elotech.desafio.repository.EmprestimoRepository;
 import com.elotech.desafio.repository.LivroRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +25,10 @@ public class LivroService {
     private  String apiKey;
 
     private final LivroRepository livroRepository;
+
+    private final UsuarioService usuarioService;
+
+    private final EmprestimoRepository emprestimoRepository;
 
     public Livro criarLivro(LivroRequestDTO requestDTO){
 
@@ -75,7 +82,6 @@ public class LivroService {
                 .isbn(extraiIsbn(item.volumeInfo().industryIdentifiers()))
                 .dataPublicacao(parseDataPublicacao(item.volumeInfo().publishedDate()))
                 .build());
-
     }
 
 
@@ -97,6 +103,22 @@ public class LivroService {
 
         livroRepository.delete(livroDeletado);
 
+    }
+
+    public List<Livro> recomendaLivro(Long usuarioId){
+
+        Usuario usuario = usuarioService.retornaUsuario(usuarioId);
+
+        List<Emprestimo> emprestimos = emprestimoRepository.findByUsuario(usuario);
+
+        if(emprestimos == null){return List.of();}
+
+        List<String> categorias = emprestimos.stream().map(i -> i.getLivro().getCategoria())
+                .distinct().toList();
+
+        List<Long> idLivrosEmprestados = emprestimos.stream().map(i -> i.getLivro().getId()).toList();
+
+        return livroRepository.findByCategoriaInAndIdNotIn(categorias, idLivrosEmprestados);
     }
 
 
