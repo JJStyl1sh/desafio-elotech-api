@@ -1,180 +1,132 @@
-# Desafio Técnico - Elotech
+# Desafio Tecnico Elotech - Sistema de Biblioteca
 
-Sistema de gestão de biblioteca com cadastro de livros, usuários, empréstimos, devoluções e recomendações de livros.
+**Autor:** Joao Fernando Ehlers
 
----
+Sistema completo para gestao de biblioteca com emprestimos, devolucoes e recomendacoes de livros.
 
-## Tecnologias
+## Stack
 
-**Backend**
-- Java 21
-- Spring Boot
-- Spring Data JPA
-- PostgreSQL
-- Maven
-
-**Frontend**
-- React 18
-- Vite
-- CSS puro
-
-**Infraestrutura**
-- Docker
-- Docker Compose
+- **Backend:** Java 21, Spring Boot 3, Spring Data JPA, PostgreSQL
+- **Frontend:** React 18 + Vite
+- **Infra:** Docker, Docker Compose, Nginx
 
 ---
 
-## Pré-requisitos
+## Como rodar
 
-- Docker e Docker Compose instalados
-- Chave de API do Google Books ([obter aqui](https://console.cloud.google.com))
+### Com Docker (recomendado)
 
----
-
-## Como executar
-
-### 1. Clone o repositório
-
-```bash
-git clone https://github.com/seu-usuario/desafio-elotech.git
-cd desafio-elotech
-```
-
-### 2. Configure a chave do Google Books
-
-Abra o `docker-compose.yml` e substitua `COLE_SUA_CHAVE_AQUI` pela sua chave:
-
+1. Configure sua chave do Google Books no `docker-compose.yml`:
 ```yaml
 - GOOGLE_BOOKS_API_KEY=sua_chave_aqui
 ```
 
-### 3. Suba os containers
-
+2. Suba tudo:
 ```bash
 docker-compose up --build
 ```
 
-Aguarde o build finalizar. Os serviços estarão disponíveis em:
+3. Acesse:
+    - Frontend: http://localhost:5173
+    - API: http://localhost:8081
 
-| Serviço  | URL                        |
-|----------|----------------------------|
-| Frontend | http://localhost:5173       |
-| Backend  | http://localhost:8081       |
-| Banco    | localhost:5432              |
+### Sem Docker
 
-### Executar sem Docker (desenvolvimento local)
-
-Certifique-se de ter PostgreSQL rodando localmente e um arquivo `application.properties` configurado, então:
-
+Backend:
 ```bash
-# Backend
 mvn spring-boot:run
+```
 
-# Frontend (em outro terminal)
-cd frontend-elotech
-npm install
-npm run dev
+Frontend:
+```bash
+cd frontend-elotech && npm install && npm run dev
 ```
 
 ---
 
-## Endpoints da API
+## Banco de Dados
 
-### Usuários `/usuarios`
+Tres tabelas principais:
 
-| Método | Endpoint         | Descrição             |
-|--------|------------------|-----------------------|
-| GET    | /usuarios        | Lista todos (paginado)|
-| GET    | /usuarios/{id}   | Busca por ID          |
-| POST   | /usuarios        | Cria novo usuário     |
-| PUT    | /usuarios/{id}   | Atualiza usuário      |
-| DELETE | /usuarios/{id}   | Remove usuário        |
+**usuarios**
+- id, nome, email (formato valido), data_cadastro (nao pode ser futura), telefone
 
-**Exemplo de body (POST/PUT):**
-```json
-{
-  "nome": "João",
-  "email": "joao@email.com",
-  "telefone": "44999777777"
-}
-```
+**livros**
+- id, titulo, autor, isbn (unico), data_publicacao, categoria
+
+**emprestimos**
+- id, usuario_id (FK), livro_id (FK), data_emprestimo, data_devolucao, status
+
+Relacionamento: Usuario 1:N Emprestimos N:1 Livro
 
 ---
+
+## Validacoes implementadas
+
+- Email precisa ter formato valido
+- Data de cadastro do usuario nao pode ser no futuro
+- Data de emprestimo nao pode ser no futuro
+- Um livro so pode ter UM emprestimo ativo por vez (impede duplicidade)
+- Campos obrigatorios validados em todas as entidades
+
+---
+
+## API - Endpoints
+
+### Usuarios `/usuarios`
+- `GET /usuarios` - lista paginada
+- `GET /usuarios/{id}` - busca por id
+- `POST /usuarios` - cria
+- `PUT /usuarios/{id}` - atualiza
+- `DELETE /usuarios/{id}` - remove
 
 ### Livros `/livros`
+- `GET /livros` - lista paginada
+- `GET /livros/{id}` - busca por id
+- `POST /livros` - cria
+- `PUT /livros/{id}` - atualiza
+- `DELETE /livros/{id}` - remove
+- `GET /livros/google?titulo=xxx` - busca no Google Books
+- `POST /livros/google?isbn=xxx` - adiciona livro do Google Books
+- `GET /livros/recomendacoes/{usuarioId}` - recomendacoes por categoria
 
-| Método | Endpoint                  | Descrição                        |
-|--------|---------------------------|----------------------------------|
-| GET    | /livros                   | Lista todos (paginado)           |
-| GET    | /livros/{id}              | Busca por ID                     |
-| POST   | /livros                   | Cria novo livro                  |
-| PUT    | /livros/{id}              | Atualiza livro                   |
-| DELETE | /livros/{id}              | Remove livro                     |
-| GET    | /livros/google?titulo=... | Busca livros na API Google Books |
-| POST   | /livros/google?isbn=...   | Adiciona livro do Google Books   |
-| GET    | /livros/recomendacoes/{usuarioId} | Retorna recomendações      |
-
-**Exemplo de body (POST/PUT):**
-```json
-{
-  "titulo": "Clean Code",
-  "autor": "Robert C. Martin",
-  "isbn": "9780132350884",
-  "dataPublicacao": "2008-08-01",
-  "categoria": "Technology"
-}
-```
+### Emprestimos `/emprestimos`
+- `GET /emprestimos` - lista paginada
+- `POST /emprestimos` - registra (body: usuarioId, livroId)
+- `PUT /emprestimos/{id}` - atualiza status/devolucao
 
 ---
 
-### Empréstimos `/emprestimos`
+## Recomendacoes
 
-| Método | Endpoint            | Descrição                        |
-|--------|---------------------|----------------------------------|
-| GET    | /emprestimos        | Lista todos (paginado)           |
-| POST   | /emprestimos        | Registra novo empréstimo         |
-| PUT    | /emprestimos/{id}   | Atualiza status e data devolução |
+O endpoint `/livros/recomendacoes/{usuarioId}` retorna livros baseados nas categorias que o usuario ja pegou emprestado. Filtra os que ele ainda nao leu.
 
-**Exemplo de body (POST):**
-```json
-{
-  "usuarioId": 1,
-  "livroId": 2
-}
-```
-
-**Exemplo de body (PUT):**
-```json
-{
-  "status": "DEVOLVIDO",
-  "dataDevolucao": "2026-03-20"
-}
-```
-
-Status disponíveis: `EMPRESTADO`, `DEVOLVIDO`, `ATRASADO`
+Obs: categorias do Google Books podem variar ("Fiction" vs "Literary Fiction"), entao as recomendacoes dependem de correspondencia exata.
 
 ---
 
-## Recomendação de Livros
+## Integracao Google Books
 
-O sistema recomenda livros com base nas categorias dos empréstimos do usuário. Se o usuário já emprestou livros da categoria "Fiction", o sistema recomendará outros livros da mesma categoria que ele ainda não emprestou.
+Busca livros pela API do Google e permite adicionar direto na biblioteca local. A chave de API nao esta no repositorio por seguranca - configure no docker-compose ou application.properties.
 
-> A recomendação utiliza correspondência exata de categoria. Livros adicionados via Google Books podem ter variações de categoria (ex: "Fiction" vs "Literary Fiction") que afetam os resultados.
+Tratamento de datas parciais: quando a API retorna so ano ou ano-mes, normalizo pro primeiro dia do periodo.
 
 ---
 
 ## Testes
 
-Os testes unitários cobrem os serviços principais da aplicação utilizando JUnit 5 e Mockito.
-
 ```bash
 mvn test
 ```
 
+Cobertura dos services principais (UsuarioService, LivroService, EmprestimoService) com JUnit 5 e Mockito.
+
 ---
 
-## Observações
+## Decisoes tecnicas
 
-- A chave da API do Google Books não está inclusa no repositório. Configure conforme instruções acima.
-- Datas parciais retornadas pela API do Google Books (ex: `"1990-08"` ou `"1959"`) são normalizadas para o primeiro dia do período.
-- O campo `autor` armazena múltiplos autores separados por vírgula para manter compatibilidade com a especificação. Em produção, recomendaríamos uma tabela dedicada para autores.
+- Usei paginacao em todos os endpoints de listagem pra escalar melhor
+- Separei bem as camadas (controller -> service -> repository)
+- DTOs separados pra request/response
+- Tratamento global de excecoes com mensagens claras
+- Frontend simples em React puro sem frameworks de UI pra manter leve
